@@ -10,12 +10,7 @@ const positionSchema = new mongoose.Schema(
     pay: {
       type: Number,
       required: true,
-    },
-    location: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+    }
   },
   { timestamps: true }
 );

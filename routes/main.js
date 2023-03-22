@@ -4,7 +4,7 @@ const EmployeeRouter = require("./employee");
 const PositionRouter = require("./position");
 
 
-const routes = ({ app, io }) => {
+const routes = ({ app }) => {
   app.use("/auth", AuthRouter);
   app.use("/admin", AdminRouter);
   app.use("/employee", EmployeeRouter);

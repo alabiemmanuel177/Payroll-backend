@@ -19,11 +19,17 @@ router.post("/register/employee", async (req, res) => {
       return res.status(409).json({ message: "Employee already exists" });
     }
 
+    if (!password || typeof password !== "string") {
+      return res
+        .status(400)
+        .json({ message: "Password is required and must be a string" });
+    }
+
     const saltRounds = 10; // Use 10 rounds of salt
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create new user
-    const newUser = new User({
+    const newUser = new Employee({
       name,
       email,
       password: hashedPassword,

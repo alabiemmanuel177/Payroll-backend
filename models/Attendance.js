@@ -16,10 +16,16 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
+    late: {
+      type: Boolean,
+      default: false,
+    },
+    pay: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );
 
 const Attendance = mongoose.model("Attendance", attendanceSchema);
-
 module.exports = Attendance;

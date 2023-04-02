@@ -1,15 +1,64 @@
 const express = require("express");
 const router = express.Router();
-const Attendance = require("../models/attendance");
 const Employee = require("../models/Employee");
+const Attendance = require("../models/Attendance");
+const Lateness = require("../models/Lateness");
+const Position = require("../models/Position");
 
+// POST /attendance
 router.post("/", async (req, res) => {
+  const { employeeId } = req.body;
+
   try {
-    const attendance = new Attendance(req.body);
+    // Find the employee and position
+    const employee = await Employee.findById(employeeId);
+    const position = await Position.findById(employee.position);
+
+    // Check if the employee has already marked attendance for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const attendanceToday = await Attendance.findOne({
+      employee: employeeId,
+      date: today,
+    });
+    if (attendanceToday) {
+      return res.status(400).send("Attendance already marked for today");
+    }
+
+    // Check if the employee was early or late
+    const lateness = await Lateness.findOne({
+      start: { $lte: new Date() },
+      end: { $gte: new Date() },
+    });
+
+    let pay = position.pay;
+    let deduction = 0;
+
+    if (lateness) {
+      const latenessPercentage = lateness.deductionAmount / 100;
+      const hoursLate = new Date().getHours() - lateness.start.getHours();
+      const minutesLate = new Date().getMinutes() - lateness.start.getMinutes();
+      const totalMinutesLate = hoursLate * 60 + minutesLate;
+      const deductionAmount = position.pay * latenessPercentage;
+      deduction = deductionAmount * (totalMinutesLate / 60);
+      pay -= deduction;
+    }
+
+    // Create the attendance record with the server's timestamp
+    const attendance = new Attendance({
+      employee: employeeId,
+      date: today,
+      present: true,
+      late: !!lateness,
+      pay,
+      deduction,
+    });
+
     await attendance.save();
-    res.status(201).send(attendance);
+    res.json(attendance);
   } catch (error) {
-    res.status(400).send(error);
+    console.error(error);
+    res.status(500).send("Error saving attendance");
   }
 });
 
@@ -102,6 +151,32 @@ router.get("/payroll/:employeeId", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET employee Attendance for a MONTH
+router.get("/employee/:employeeId/attendance", async (req, res) => {
+  try {
+    // Get the employee ID from the request parameters
+    const { employeeId } = req.params;
+
+    // Get the current month and year
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+
+    // Find all attendance records for the given employee and current month
+    const attendance = await Attendance.find({
+      employee: employeeId,
+      date: {
+        $gte: new Date(`${year}-${month}-01`),
+        $lt: new Date(`${year}-${month + 1}-01`),
+      },
+    });
+
+    res.json(attendance);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

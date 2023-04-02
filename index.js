@@ -8,9 +8,7 @@ const io = require("socket.io")(server, { cors: { origin: "*" } });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const whitelist = [
-  "http://localhost:3000",
-];
+const whitelist = ["http://localhost:3000"];
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
@@ -20,6 +18,10 @@ const corsOptions = {
     }
   },
 };
+const moment = require("moment-timezone");
+
+// Set the server timezone to WAT
+moment.tz.setDefault("Africa/Lagos");
 
 // app.use(cors(corsOptions));
 app.use(cors());

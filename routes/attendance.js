@@ -92,7 +92,9 @@ router.delete("/:id", async (req, res) => {
 //GET ATTENDANCE
 router.get("/:id", async (req, res) => {
   try {
-    const attendance = await Attendance.findById(req.params.id);
+    const attendance = await Attendance.findById(req.params.id).populate(
+      "employee"
+    );
     return res.status(200).json(attendance);
   } catch (err) {
     return res.status(500).json(err);
@@ -103,7 +105,7 @@ router.get("/:id", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     let attendances;
-    attendances = await Attendance.find().populate("author");
+    attendances = await Attendance.find().populate("employee");
     return res.status(200).json(attendances);
   } catch (err) {
     return res.status(500).json(err);

@@ -74,12 +74,12 @@ router.post("/current-month", async (req, res) => {
     const monthlyPays = await Promise.all(
       employees.map(async (employee) => {
         const monthlyPay = await MonthlyPay.findOne({
-          employee: employee._id,
+          employee: employee,
           month: currentMonth,
           year: currentYear,
-        }).populate("employee");
+        })
         return {
-          employee: employee._id,
+          employee: employee,
           totalPay: monthlyPay ? monthlyPay.totalPay : 0,
         };
       })

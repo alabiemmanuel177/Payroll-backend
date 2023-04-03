@@ -98,9 +98,7 @@ router.post("/current-month", async (req, res) => {
     // Save the monthly payroll
     await monthlyPayroll.save();
 
-    res
-      .status(200)
-      .json({ message: "Monthly payroll created or updated successfully" });
+    res.status(200).json(monthlyPayroll);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

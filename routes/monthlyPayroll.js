@@ -77,7 +77,7 @@ router.post("/current-month", async (req, res) => {
           employee: employee._id,
           month: currentMonth,
           year: currentYear,
-        });
+        }).populate("employee");
         return {
           employee: employee._id,
           totalPay: monthlyPay ? monthlyPay.totalPay : 0,

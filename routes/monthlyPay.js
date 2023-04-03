@@ -69,7 +69,7 @@ router.get("/:employeeId", async (req, res) => {
         totalPay,
       },
       { upsert: true, new: true }
-    );
+    ).populate("employee");
 
     res.json(monthlyPay);
   } catch (err) {

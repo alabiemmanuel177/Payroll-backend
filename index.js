@@ -20,9 +20,6 @@ const corsOptions = {
 };
 const moment = require("moment-timezone");
 
-// Set the server timezone to WAT
-moment.tz.setDefault("Africa/Lagos");
-
 // app.use(cors(corsOptions));
 app.use(cors());
 

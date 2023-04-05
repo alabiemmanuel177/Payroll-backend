@@ -26,19 +26,19 @@ router.post("/", async (req, res) => {
     }
 
     // Check if the employee was early or late
+    const now = new Date();
     const lateness = await Lateness.findOne({
-      start: { $lte: new Date() },
-      end: { $gte: new Date() },
+      start: { $lte: now },
+      end: { $gte: now },
     });
 
     let pay = position.pay;
     let deduction = 0;
 
     if (lateness) {
-      const latenessPercentage = lateness.deductionAmount / 100;
-      const hoursLate = new Date().getHours() - lateness.start.getHours();
-      const minutesLate = new Date().getMinutes() - lateness.start.getMinutes();
-      const totalMinutesLate = hoursLate * 60 + minutesLate;
+      const latenessPercentage = lateness.deductionAmmount / 100;
+      const totalMinutesLate =
+        (now.getTime() - lateness.start.getTime()) / (1000 * 60);
       const deductionAmount = position.pay * latenessPercentage;
       deduction = deductionAmount * (totalMinutesLate / 60);
       pay -= deduction;
@@ -179,6 +179,25 @@ router.get("/employee/:employeeId/attendance", async (req, res) => {
     res.json(attendance);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+router.get("/daily/attendance", async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const attendances = await Attendance.find({
+      date: {
+        $gte: today,
+        $lt: tomorrow,
+      },
+    }).populate("employee");
+    res.json(attendances);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
   }
 });
 

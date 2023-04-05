@@ -18,7 +18,6 @@ const corsOptions = {
     }
   },
 };
-const moment = require("moment-timezone");
 
 // app.use(cors(corsOptions));
 app.use(cors());

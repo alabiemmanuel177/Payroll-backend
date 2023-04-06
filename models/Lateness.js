@@ -2,15 +2,19 @@ const mongoose = require("mongoose");
 
 const latenessSchema = new mongoose.Schema(
   {
-    start: {
+    startTime: {
       type: Date,
       required: true,
     },
-    end: {
+    lateMarkStartTime: {
       type: Date,
       required: true,
     },
-    deductionAmmount: {
+    lateMarkEndTime: {
+      type: Date,
+      required: true,
+    },
+    deductionPercentage: {
       type: Number,
       required: true,
     },
@@ -19,5 +23,4 @@ const latenessSchema = new mongoose.Schema(
 );
 
 const Lateness = mongoose.model("Lateness", latenessSchema);
-
 module.exports = Lateness;

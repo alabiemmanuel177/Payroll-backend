@@ -20,9 +20,6 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   console.log("Folder Exist");
 }
 
-const { routes } = require("./routes/main");
-
-// Add the following middleware to enable CORS
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -31,6 +28,8 @@ app.use((req, res, next) => {
   );
   next();
 });
+
+const { routes } = require("./routes/main");
 
 // Registers routes
 routes({ app, io });

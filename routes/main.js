@@ -6,6 +6,7 @@ const LatenessRouter = require("./lateness");
 const MonthlyPayRouter = require("./monthlyPay");
 const MonthlyPayrollRouter = require("./monthlyPayroll");
 const AttendanceRouter = require("./attendance");
+const cors = require("cors");
 
 const routes = ({ app, io, allowedOrigins }) => {
   app.use(

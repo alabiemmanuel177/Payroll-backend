@@ -3,6 +3,8 @@ const app = express();
 const connectDB = require("./migrations/index.js");
 const server = require("http").createServer(app);
 const io = require("socket.io")(server, { cors: { origin: "*" } });
+const cors = require("cors");
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,15 +21,6 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 } else {
   console.log("Folder Exist");
 }
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
 
 const { routes } = require("./routes/main");
 

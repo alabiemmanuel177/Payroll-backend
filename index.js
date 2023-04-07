@@ -19,8 +19,7 @@ const corsOptions = {
   },
 };
 
-// app.use(cors(corsOptions));
-app.use(cors());
+app.use(cors(corsOptions));
 
 const { routes } = require("./routes/main");
 

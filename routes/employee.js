@@ -36,9 +36,9 @@ router.delete("/:id", async (req, res) => {
 //GET employee
 router.get("/:id", async (req, res) => {
   try {
-    const employee = await Employee.findById(req.params.id).populate(
-      "position"
-    );
+    const employee = await Employee.findById(req.params.id)
+      .populate("position")
+      .populate("profilePic");
     return res.status(200).json(employee);
   } catch (err) {
     return res.status(500).json(err);
@@ -49,7 +49,9 @@ router.get("/:id", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     let employees;
-    employees = await Employee.find().populate("position");
+    employees = await Employee.find()
+      .populate("position")
+      .populate("profilePic");
     return res.status(200).json(employees);
   } catch (err) {
     return res.status(500).json(err);

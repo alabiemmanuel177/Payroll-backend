@@ -30,6 +30,10 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    profilePic: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ProfilePic",
+    },
   },
   { timestamps: true }
 );

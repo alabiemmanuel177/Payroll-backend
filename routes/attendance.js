@@ -1,13 +1,73 @@
 const express = require("express");
 const router = express.Router();
 const moment = require("moment");
-
 const Attendance = require("../models/Attendance");
 const Employee = require("../models/Employee");
-const Position = require("../models/Position");
 const Lateness = require("../models/Lateness");
 
 // Route to post attendance
+// router.post("/:employeeId", async (req, res) => {
+//   const { employeeId } = req.params;
+
+//   try {
+//     // Get the employee from the database
+//     const employee = await Employee.findById(employeeId).populate("position");
+
+//     // Get the Lateness from the database
+//     const lateness = await Lateness.findOne();
+
+//     // Get the current time
+//     const currentTime = moment().format("HH:mm");
+
+//     // Check if attendance is marked earlier than startTime in Lateness schema
+//     if (currentTime < moment(lateness.startTime).format("HH:mm")) {
+//       return res.status(400).json({ error: "Not yet in working hours" });
+//     }
+
+//     // Check if attendance is marked outside the allowed time
+//     if (currentTime > moment(lateness.lateMarkEndTime).format("HH:mm")) {
+//       return res
+//         .status(400)
+//         .json({ error: "Attendance can't be marked outside the time giving" });
+//     }
+
+//     // Set the date to the current date
+//     const date = new Date();
+
+//     // Create the attendance object
+//     const attendance = new Attendance({
+//       employee: employeeId,
+//       date,
+//       present: true,
+//     });
+
+//     // Check if attendance is marked between startTime and lateMarkStartTime
+//     if (currentTime <= moment(lateness.lateMarkStartTime).format("HH:mm")) {
+//       // Set the pay to the pay in the position schema referenced in the Employee schema
+//       attendance.pay = employee.position.pay;
+//     } else {
+//       // Attendance is marked between lateMarkStartTime and lateMarkEndTime
+//       // Set late to true in the attendance
+//       attendance.late = true;
+
+//       const deduction =
+//         (lateness.deductionPercentage * employee.position.pay) / 100;
+
+//       // Deduct a percentage of the deductionPercentage from the pay in the Position referenced in the position schema
+//       attendance.pay = employee.position.pay - deduction;
+//     }
+
+//     // Save the attendance object
+//     await attendance.save();
+
+//     // Return success message and the attendance object
+//     res.json({ message: "Attendance marked successfully", attendance });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
 router.post("/:employeeId", async (req, res) => {
   const { employeeId } = req.params;
 
@@ -18,8 +78,21 @@ router.post("/:employeeId", async (req, res) => {
     // Get the Lateness from the database
     const lateness = await Lateness.findOne();
 
-    // Get the current time
+    // Get the current time and date
     const currentTime = moment().format("HH:mm");
+    const currentDate = moment().startOf("day").toDate();
+
+    // Check if an attendance record already exists for the employee on the current date
+    const existingAttendance = await Attendance.findOne({
+      employee: employeeId,
+      date: currentDate,
+    });
+
+    if (existingAttendance) {
+      return res
+        .status(400)
+        .json({ error: "Attendance already marked for today" });
+    }
 
     // Check if attendance is marked earlier than startTime in Lateness schema
     if (currentTime < moment(lateness.startTime).format("HH:mm")) {
@@ -34,7 +107,7 @@ router.post("/:employeeId", async (req, res) => {
     }
 
     // Set the date to the current date
-    const date = new Date();
+    const date = currentDate;
 
     // Create the attendance object
     const attendance = new Attendance({
@@ -52,11 +125,6 @@ router.post("/:employeeId", async (req, res) => {
       // Set late to true in the attendance
       attendance.late = true;
 
-      // // Calculate the deduction percentage
-      // const minutesLate = moment(currentTime, "HH:mm").diff(
-      //   moment(lateness.lateMarkStartTime, "HH:mm"),
-      //   "minutes"
-      // );
       const deduction =
         (lateness.deductionPercentage * employee.position.pay) / 100;
 
@@ -74,62 +142,6 @@ router.post("/:employeeId", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-// router.post("/", async (req, res) => {
-//   const { employeeId } = req.body;
-
-//   try {
-//     // Find the employee and position
-//     const employee = await Employee.findById(employeeId);
-//     const position = await Position.findById(employee.position);
-
-//     // Check if the employee has already marked attendance for today
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-//     const attendanceToday = await Attendance.findOne({
-//       employee: employeeId,
-//       date: today,
-//     });
-//     if (attendanceToday) {
-//       return res.status(400).send("Attendance already marked for today");
-//     }
-
-//     // Check if the employee was early or late
-//     const now = new Date();
-//     const lateness = await Lateness.findOne({
-//       start: { $lte: now },
-//       end: { $gte: now },
-//     });
-
-//     let pay = position.pay;
-//     let deduction = 0;
-
-//     if (lateness) {
-//       const latenessPercentage = lateness.deductionAmmount / 100;
-//       const totalMinutesLate =
-//         (now.getTime() - lateness.start.getTime()) / (1000 * 60);
-//       const deductionAmount = position.pay * latenessPercentage;
-//       // deduction = deductionAmount * (totalMinutesLate / 60);
-//       pay -= deductionAmount;
-//     }
-
-//     // Create the attendance record with the server's timestamp
-//     const attendance = new Attendance({
-//       employee: employeeId,
-//       date: today,
-//       present: true,
-//       late: !!lateness,
-//       pay,
-//       deduction,
-//     });
-
-//     await attendance.save();
-//     res.json(attendance);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send("Error saving attendance");
-//   }
-// });
 
 //UPDATE ATTENDANCE
 router.put("/:id", async (req, res) => {

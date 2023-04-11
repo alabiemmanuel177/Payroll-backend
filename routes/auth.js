@@ -9,7 +9,7 @@ const router = express.Router();
 // Employee registration route
 router.post("/register/employee", async (req, res) => {
   try {
-    const { name, email, password, position, sex, phoneNo } = req.body;
+    const { name, email, password, position, sex, phoneNo, faceId } = req.body;
 
     // Check if user already exists
     const existingUser = await Employee.findOne({
@@ -36,6 +36,7 @@ router.post("/register/employee", async (req, res) => {
       position,
       sex,
       phoneNo,
+      faceId,
     });
 
     // Save user to database

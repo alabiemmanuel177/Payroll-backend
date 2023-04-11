@@ -32,7 +32,6 @@ const uploads = (req, folder) => {
   });
 };
 
-
 const uploader = async (path, folderName) => await uploads(path, folderName);
 
 // add a new function to delete a file

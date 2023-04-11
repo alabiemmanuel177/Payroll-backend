@@ -2,7 +2,7 @@ const router = require("express").Router();
 const Employee = require("../models/Employee");
 const bcrypt = require("bcryptjs");
 const ProfilePic = require("../models/ProfilePic");
-const { uploader, destroy } = require("../util/cloudinary");
+const { uploader, deleteFile } = require("../util/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
 
@@ -92,10 +92,6 @@ router.post("/change-password", async (req, res) => {
   }
 });
 
-/**
- * This should be properly extracted into a utility function
- */
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./uploads/");
@@ -120,7 +116,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1024 * 1024 * 5 },
+  limits: { fileSize: 1024 * 1024 * 10 },
   fileFilter: fileFilter,
 });
 
@@ -133,12 +129,10 @@ router.post(
       const user = await Employee.findById(req.params.userId);
 
       if (!user) {
-        return res.status(404).json({ message: "Employee not found" });
+        return res.status(404).json({ message: "Student not found" });
       }
 
-      // Upload the new profile picture to Cloudinary
-      const { path } = req.file;
-      const result = await uploader(path, "Payroll/profile_pictures");
+      const result = await uploader(req, "PayRoll/profile_pictures");
 
       // Create a new profile picture document in the database
       const newProfilePic = new ProfilePic({
@@ -156,12 +150,51 @@ router.post(
       res
         .status(200)
         .json({ message: "Profile picture uploaded successfully" });
-      fs.unlinkSync(path);
+      fs.unlinkSync(req.file.path);
     } catch (err) {
       console.log(err);
       res.status(500).json({ message: "Server error" });
     }
   }
 );
+
+// Delete the profile picture for a user
+router.delete("/:userId/profilepic", async (req, res) => {
+  try {
+    const user = await Employee.findById(req.params.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    // Check if the user has a profile picture
+    if (!user.profilePic) {
+      return res
+        .status(400)
+        .json({ message: "User does not have a profile picture" });
+    }
+
+    const profilePic = await ProfilePic.findById(user.profilePic);
+
+    if (!profilePic) {
+      return res.status(404).json({ message: "Profile picture not found" });
+    }
+
+    // Delete the profile picture from Cloudinary
+    await deleteFile(profilePic.public_id);
+
+    // Delete the profile picture document from the database
+    await ProfilePic.findByIdAndDelete(profilePic._id);
+
+    // Remove the reference to the profile picture from the user's document
+    user.profilePic = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Profile picture deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 module.exports = router;

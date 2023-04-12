@@ -25,21 +25,20 @@ app.use(
 app.use(passport.session());
 
 const whitelist = ["http://localhost:3000", "https://bucodel.vercel.app"];
+
 const corsOptions = {
-  /**
-   * @param origin
-   * @param callback
-   */
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     // Check if the origin is allowed by CORS
-    if (whitelist.indexOf(origin) !== -1) {
+    if (whitelist.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
 };
-app.use(cors());
+
+app.use(cors(corsOptions));
+
 
 const fs = require("fs");
 
